@@ -1,4 +1,0 @@
-WaterSheet/
-  lakefile.lean
-  WaterSheet.lean <- the keep file
-  Main.lean <- shim
