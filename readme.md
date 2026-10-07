@@ -39,3 +39,4 @@ Rain can come down in drops, buckets, and pour... it's all mass, density and tim
 ```lean
 fade_to_zero : ∀ s c, ∃ n, (iterate tickFade n s) c = 0
 sheet_returns_to_smooth : ∀ s, ∃ N, iterate tickFade N s = fun _ => 0
+```
