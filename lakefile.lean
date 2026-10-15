@@ -6,4 +6,7 @@ package WaterSheet where
 
 @[default_target]
 lean_lib WaterSheet where
-  --
+  roots := #[`WaterSheet, `WaterSheetQ]
+
+lean_exe watersheet where
+  root := `Main
