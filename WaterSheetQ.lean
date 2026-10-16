@@ -74,24 +74,7 @@ theorem iterate_fadeQ_eq (q : Int) (n : Nat) (s : SheetQ) (c : Clock) :
       _ = s c - (Nat.succ n) * (drainQ q : Int) := by rw [Nat.succ_eq_add_one, Nat.add_comm]
 
 -- === Neighbor spill: teardrop twist transfers to quiet water ===
-def neighbor (c : Clock) : List Clock :=
-  [⟨(c.val + 1) % 720, Nat.mod_lt _ (by decide)⟩,
-   ⟨(c.val + 719) % 720, Nat.mod_lt _ (by decide)⟩]
-
-def tickSpill (s : Sheet) (c : Clock) : Sheet :=
-  fun x => if x ∈ neighbor c then s x + (containerOf c).spin
-           else if x == c then s x + (containerOf c).mass
-           else s x
-
 def tickSpillQ (q : Int) (s : SheetQ) (c : Clock) : SheetQ :=
   fun x => if x ∈ neighbor c then s x + (containerOf c).spin + envInfluence q
            else if x == c then s x + (containerOf c).mass
            else s x
-
-theorem spill_bounded (s : Sheet) (c x : Clock) : tickSpill s c x ≤ s x + 3 := by
-  unfold tickSpill neighbor containerOf densityStack spinFromAngle sharedByThree onFace
-  split
-  · omega
-  · split
-    · omega
-    · omega
