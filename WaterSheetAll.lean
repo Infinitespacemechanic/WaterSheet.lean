@@ -1,17 +1,40 @@
 -- WaterSheetAll.lean - merged for lean4web MathlibDemo
 -- Paste this whole file into MathlibDemo.lean
+-- Update: teardrop container, twist from free-fall friction, combining IS size
 
-def Clock := Fin 720
-def onFace (c : Clock) : Bool := c.val % 60 == 0
+def Clock := Fin 720 -- per square inch container lattice, 720-face ruler
+
+def onFace (c : Clock) : Bool := c.val % 60 == 0 -- two metals aligned
 def sharedByThree (c : Clock) : Bool := c.val % 3 == 0
-def densityStack (c : Clock) : Nat := if sharedByThree c then 0 else (3 - c.val % 3) % 3
-def spinFromAngle (c : Clock) : Nat := if onFace c then 0 else 1
-def sheetLeftover (c : Clock) : Nat := densityStack c + spinFromAngle c
+
+-- Container contents
+def densityStack (c : Clock) : Nat := if sharedByThree c then 0 else (3 - c.val % 3) % 3 -- mass 0..2
+def spinFromAngle (c : Clock) : Nat := if onFace c then 0 else 1 -- twist 0..1 from friction in free fall
+
+-- Teardrop container: mass + spin, not sphere, not point
+structure Container where
+  mass : Nat
+  spin : Nat
+deriving DecidableEq, Repr
+
+def containerOf (c : Clock) : Container where
+  mass := densityStack c
+  spin := spinFromAngle c
+
+-- Mass-energy leftover: mass + twist, 0..3, threes need soap film
+-- 0.5mm smallest raindrop (spillway), 9.7mm largest verified (Oklahoma), breaks above ~10mm
+-- Every drop has angular momentum from free fall + friction
+def sheetLeftover (c : Clock) : Nat := (containerOf c).mass + (containerOf c).spin
+
+-- Same mass on every square, combining IS size
 def Sheet := Clock → Nat
-def tickFade (s : Sheet) : Sheet := fun c => s c - 1
-def tickHitLocal (s : Sheet) (c : Clock) : Sheet := fun x => if x == c then s x + sheetLeftover x else s x
-def tickPour (s : Sheet) : Sheet := fun c => s c + sheetLeftover c
-def needsSoap (c : Clock) : Bool := sheetLeftover c == 3
+def combinedMass (cells : List Clock) (s : Sheet) : Nat :=
+  cells.foldl (fun acc c => acc + s c) 0 -- 1 drop=drop, many=bucket/pour
+
+def tickFade (s : Sheet) : Sheet := fun c => s c - 1 -- rain stopped, vortex ages
+def tickHitLocal (s : Sheet) (c : Clock) : Sheet := fun x => if x == c then s x + sheetLeftover x else s x -- one teardrop
+def tickPour (s : Sheet) : Sheet := fun c => s c + sheetLeftover c -- many teardrops combining = pour / waterjet
+def needsSoap (c : Clock) : Bool := sheetLeftover c == 3 -- bubble needs bag
 
 theorem iterate_fade_eq (n : Nat) (s : Sheet) (c : Clock) : (Nat.iterate tickFade n s) c = s c - n := by
   induction n generalizing s with
@@ -44,19 +67,19 @@ theorem le_maxVal (s : Sheet) (c : Clock) : s c ≤ maxVal s := by
 theorem sheet_returns_to_smooth (s : Sheet) : ∃ N, (Nat.iterate tickFade N s) = fun _ => 0 := by
   use maxVal s; funext c; rw [iterate_fade_eq]; have h := le_maxVal s c; omega
 
--- Q extension
+-- Q extension — q = shop air on teardrop skin, viscosity + drainage
 def envInfluence (q : Int) : Int := q
-def sheetLeftoverQ (q : Int) (c : Clock) : Int := (densityStack c : Int) + (spinFromAngle c : Int) + envInfluence q
-def drainQ (q : Int) : Nat := if q < 0 then 2 else 1
+def sheetLeftoverQ (q : Int) (c : Clock) : Int := (containerOf c).mass + (containerOf c).spin + envInfluence q
+def drainQ (q : Int) : Nat := if q < 0 then 2 else 1 -- cold shop vent open =2, hot=1
 def SheetQ := Clock → Int
 def tickFadeQ (q : Int) (s : SheetQ) : SheetQ := fun c => s c - (drainQ q : Int)
 def tickPourQ (q : Int) (s : SheetQ) : SheetQ := fun c => s c + sheetLeftoverQ q c
 def needsSoapQ (q : Int) (c : Clock) : Bool := sheetLeftoverQ q c == 3
 def isSmoothQ (q : Int) (c : Clock) : Prop := sheetLeftoverQ q c ≤ (drainQ q : Int)
 
-theorem sheetLeftoverQ_at_60 (q : Int) : sheetLeftoverQ q ⟨60, by simp⟩ = q := by simp [sheetLeftoverQ, densityStack, spinFromAngle, sharedByThree, onFace, envInfluence]
-theorem forced_blowup_at_one : sheetLeftoverQ 1 ⟨1, by simp⟩ = 4 := by simp [sheetLeftoverQ, densityStack, spinFromAngle, sharedByThree, onFace, envInfluence]
+theorem sheetLeftoverQ_at_60 (q : Int) : sheetLeftoverQ q ⟨60, by simp⟩ = q := by simp [sheetLeftoverQ, containerOf, densityStack, spinFromAngle, sharedByThree, onFace, envInfluence]
+theorem forced_blowup_at_one : sheetLeftoverQ 1 ⟨1, by simp⟩ = 4 := by simp [sheetLeftoverQ, containerOf, densityStack, spinFromAngle, sharedByThree, onFace, envInfluence]
 theorem forced_not_smooth_at_one : ¬ isSmoothQ 1 ⟨1, by simp⟩ := by simp [isSmoothQ, forced_blowup_at_one, drainQ]
-theorem good_env_rescues_one : isSmoothQ (-1) ⟨1, by simp⟩ := by simp [isSmoothQ, sheetLeftoverQ, densityStack, spinFromAngle, sharedByThree, onFace, envInfluence, drainQ]
+theorem good_env_rescues_one : isSmoothQ (-1) ⟨1, by simp⟩ := by simp [isSmoothQ, sheetLeftoverQ, containerOf, densityStack, spinFromAngle, sharedByThree, onFace, envInfluence, drainQ]
 theorem vent_saves_good_env : isSmoothQ (-1) ⟨60, by simp⟩ := by simp [isSmoothQ, sheetLeftoverQ_at_60, drainQ]
 theorem clay_vent_smooth : isSmoothQ 0 ⟨60, by simp⟩ := by simp [isSmoothQ, sheetLeftoverQ_at_60, drainQ]
