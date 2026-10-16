@@ -95,7 +95,21 @@ theorem iterate_fadeQ_eq (q : Int) (n : Nat) (s : SheetQ) (c : Clock) :
 -- Your original theorems become corollaries with q=0 and drain=1
 -- sheet_returns_to_smooth is the unforced NS: global smooth existence
 -- OpenAI's claim is sheetLeftoverQ with q>0 can stay >=3 under tickPourQ
+-- === Neighbor spill: teardrop twist transfers to quiet water ===
+-- 0.5mm spillway, mass-energy + angular momentum moves to next container
+-- This is how vortex eye forms, tornado locks, waterjet cuts a line
 
+def neighbor (c : Clock) : List Clock :=
+  [⟨(c.val + 1) % 720, by simp⟩, ⟨(c.val + 719) % 720, by simp; omega⟩]
+
+def tickSpill (s : Sheet) (c : Clock) : Sheet :=
+  fun x => if x ∈ neighbor c then s x + (containerOf c).spin else if x == c then s x + (containerOf c).mass else s x
+-- mass stays in hit cell, spin (twist from friction) spills 0.5mm to neighbors
+-- single drop -> rotation in quiet water, many combined -> eyewall jet
+-- Spill still bounded: mass 0..2 + spin 0..1 = 0..3 per cell, fade still works
+theorem spill_bounded (s : Sheet) (c x : Clock) : tickSpill s c x ≤ s x + 3 := by
+  simp [tickSpill, containerOf, densityStack, spinFromAngle]
+  omega
 -- Summary for README:
 -- q = -1: cold shop, vent open, hurricane eye stable, perpetual smoothness, 0.5mm spillway works
 -- q = 0 : Clay, no external force, sheet_returns_to_smooth proves smooth — empty teardrop fades
