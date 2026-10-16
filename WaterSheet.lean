@@ -96,3 +96,19 @@ theorem le_maxVal (s : Sheet) (c : Clock) : s c ≤ maxVal s := by
 
 theorem sheet_returns_to_smooth (s : Sheet) : ∃ N, (Nat.iterate tickFade N s) = fun _ => 0 := by
   use maxVal s; funext c; rw [iterate_fade_eq]; have h := le_maxVal s c; omega
+-- === Neighbor spill: teardrop twist transfers to quiet water ===
+-- 0.5mm spillway, mass-energy + angular momentum moves to next container
+-- This is how vortex eye forms, tornado locks, waterjet cuts a line
+
+def neighbor (c : Clock) : List Clock :=
+  [⟨(c.val + 1) % 720, by simp⟩, ⟨(c.val + 719) % 720, by simp; omega⟩]
+
+def tickSpill (s : Sheet) (c : Clock) : Sheet :=
+  fun x => if x ∈ neighbor c then s x + (containerOf c).spin else if x == c then s x + (containerOf c).mass else s x
+-- mass stays in hit cell, spin (twist from friction) spills 0.5mm to neighbors
+-- single drop -> rotation in quiet water, many combined -> eyewall jet
+
+-- Spill still bounded: mass 0..2 + spin 0..1 = 0..3 per cell, fade still works
+theorem spill_bounded (s : Sheet) (c x : Clock) : tickSpill s c x ≤ s x + 3 := by
+  simp [tickSpill, containerOf, densityStack, spinFromAngle]
+  omega
