@@ -1,6 +1,6 @@
 -- WaterSheetAll.lean - merged for lean4web MathlibDemo
 -- Paste this whole file into MathlibDemo.lean
--- Update: teardrop container, twist from free-fall friction, combining IS size
+-- Update: teardrop container, twist from free-fall friction, combining IS size, neighbor spill
 
 def Clock := Fin 720 -- per square inch container lattice, 720-face ruler
 
@@ -23,18 +23,16 @@ def containerOf (c : Clock) : Container where
 
 -- Mass-energy leftover: mass + twist, 0..3, threes need soap film
 -- 0.5mm smallest raindrop (spillway), 9.7mm largest verified (Oklahoma), breaks above ~10mm
--- Every drop has angular momentum from free fall + friction
 def sheetLeftover (c : Clock) : Nat := (containerOf c).mass + (containerOf c).spin
 
--- Same mass on every square, combining IS size
 def Sheet := Clock → Nat
 def combinedMass (cells : List Clock) (s : Sheet) : Nat :=
   cells.foldl (fun acc c => acc + s c) 0 -- 1 drop=drop, many=bucket/pour
 
-def tickFade (s : Sheet) : Sheet := fun c => s c - 1 -- rain stopped, vortex ages
-def tickHitLocal (s : Sheet) (c : Clock) : Sheet := fun x => if x == c then s x + sheetLeftover x else s x -- one teardrop
-def tickPour (s : Sheet) : Sheet := fun c => s c + sheetLeftover c -- many teardrops combining = pour / waterjet
-def needsSoap (c : Clock) : Bool := sheetLeftover c == 3 -- bubble needs bag
+def tickFade (s : Sheet) : Sheet := fun c => s c - 1
+def tickHitLocal (s : Sheet) (c : Clock) : Sheet := fun x => if x == c then s x + sheetLeftover x else s x
+def tickPour (s : Sheet) : Sheet := fun c => s c + sheetLeftover c
+def needsSoap (c : Clock) : Bool := sheetLeftover c == 3
 
 theorem iterate_fade_eq (n : Nat) (s : Sheet) (c : Clock) : (Nat.iterate tickFade n s) c = s c - n := by
   induction n generalizing s with
@@ -67,10 +65,10 @@ theorem le_maxVal (s : Sheet) (c : Clock) : s c ≤ maxVal s := by
 theorem sheet_returns_to_smooth (s : Sheet) : ∃ N, (Nat.iterate tickFade N s) = fun _ => 0 := by
   use maxVal s; funext c; rw [iterate_fade_eq]; have h := le_maxVal s c; omega
 
--- Q extension — q = shop air on teardrop skin, viscosity + drainage
+-- Q extension — q = shop air on teardrop skin
 def envInfluence (q : Int) : Int := q
 def sheetLeftoverQ (q : Int) (c : Clock) : Int := (containerOf c).mass + (containerOf c).spin + envInfluence q
-def drainQ (q : Int) : Nat := if q < 0 then 2 else 1 -- cold shop vent open =2, hot=1
+def drainQ (q : Int) : Nat := if q < 0 then 2 else 1
 def SheetQ := Clock → Int
 def tickFadeQ (q : Int) (s : SheetQ) : SheetQ := fun c => s c - (drainQ q : Int)
 def tickPourQ (q : Int) (s : SheetQ) : SheetQ := fun c => s c + sheetLeftoverQ q c
@@ -83,19 +81,26 @@ theorem forced_not_smooth_at_one : ¬ isSmoothQ 1 ⟨1, by simp⟩ := by simp [i
 theorem good_env_rescues_one : isSmoothQ (-1) ⟨1, by simp⟩ := by simp [isSmoothQ, sheetLeftoverQ, containerOf, densityStack, spinFromAngle, sharedByThree, onFace, envInfluence, drainQ]
 theorem vent_saves_good_env : isSmoothQ (-1) ⟨60, by simp⟩ := by simp [isSmoothQ, sheetLeftoverQ_at_60, drainQ]
 theorem clay_vent_smooth : isSmoothQ 0 ⟨60, by simp⟩ := by simp [isSmoothQ, sheetLeftoverQ_at_60, drainQ]
--- === Neighbor spill: teardrop twist transfers to quiet water ===
--- 0.5mm spillway, mass-energy + angular momentum moves to next container
--- This is how vortex eye forms, tornado locks, waterjet cuts a line
 
+-- === Neighbor spill: teardrop twist transfers to quiet water ===
 def neighbor (c : Clock) : List Clock :=
-  [⟨(c.val + 1) % 720, by simp⟩, ⟨(c.val + 719) % 720, by simp; omega⟩]
+  [⟨(c.val + 1) % 720, Nat.mod_lt _ (by decide)⟩,
+   ⟨(c.val + 719) % 720, Nat.mod_lt _ (by decide)⟩]
 
 def tickSpill (s : Sheet) (c : Clock) : Sheet :=
-  fun x => if x ∈ neighbor c then s x + (containerOf c).spin else if x == c then s x + (containerOf c).mass else s x
--- mass stays in hit cell, spin (twist from friction) spills 0.5mm to neighbors
--- single drop -> rotation in quiet water, many combined -> eyewall jet
+  fun x => if x ∈ neighbor c then s x + (containerOf c).spin
+           else if x == c then s x + (containerOf c).mass
+           else s x
 
--- Spill still bounded: mass 0..2 + spin 0..1 = 0..3 per cell, fade still works
+def tickSpillQ (q : Int) (s : SheetQ) (c : Clock) : SheetQ :=
+  fun x => if x ∈ neighbor c then s x + (containerOf c).spin + envInfluence q
+           else if x == c then s x + (containerOf c).mass
+           else s x
+
 theorem spill_bounded (s : Sheet) (c x : Clock) : tickSpill s c x ≤ s x + 3 := by
-  simp [tickSpill, containerOf, densityStack, spinFromAngle]
-  omega
+  unfold tickSpill neighbor containerOf densityStack spinFromAngle sharedByThree onFace
+  split
+  · omega
+  · split
+    · omega
+    · omega
