@@ -83,3 +83,19 @@ theorem forced_not_smooth_at_one : ¬ isSmoothQ 1 ⟨1, by simp⟩ := by simp [i
 theorem good_env_rescues_one : isSmoothQ (-1) ⟨1, by simp⟩ := by simp [isSmoothQ, sheetLeftoverQ, containerOf, densityStack, spinFromAngle, sharedByThree, onFace, envInfluence, drainQ]
 theorem vent_saves_good_env : isSmoothQ (-1) ⟨60, by simp⟩ := by simp [isSmoothQ, sheetLeftoverQ_at_60, drainQ]
 theorem clay_vent_smooth : isSmoothQ 0 ⟨60, by simp⟩ := by simp [isSmoothQ, sheetLeftoverQ_at_60, drainQ]
+-- === Neighbor spill: teardrop twist transfers to quiet water ===
+-- 0.5mm spillway, mass-energy + angular momentum moves to next container
+-- This is how vortex eye forms, tornado locks, waterjet cuts a line
+
+def neighbor (c : Clock) : List Clock :=
+  [⟨(c.val + 1) % 720, by simp⟩, ⟨(c.val + 719) % 720, by simp; omega⟩]
+
+def tickSpill (s : Sheet) (c : Clock) : Sheet :=
+  fun x => if x ∈ neighbor c then s x + (containerOf c).spin else if x == c then s x + (containerOf c).mass else s x
+-- mass stays in hit cell, spin (twist from friction) spills 0.5mm to neighbors
+-- single drop -> rotation in quiet water, many combined -> eyewall jet
+
+-- Spill still bounded: mass 0..2 + spin 0..1 = 0..3 per cell, fade still works
+theorem spill_bounded (s : Sheet) (c x : Clock) : tickSpill s c x ≤ s x + 3 := by
+  simp [tickSpill, containerOf, densityStack, spinFromAngle]
+  omega
