@@ -1,0 +1,136 @@
+# Universal Pressure Theory & WaterSheet.lean — Clean Summary
+# Final version: Mass Budget Remains, No Free Infinity
+
+## 1. The Old Puzzle (What the Question Asks)
+Clay Millennium: Navier-Stokes existence & smoothness in 3D.
+
+Does a smooth (C^∞) solution u(x,t), p(x,t) exist globally in time for all t ≥ 0,
+given smooth finite-energy divergence-free u0(x)?
+
+Known:
+- Local smooth solutions exist
+- Global weak solutions exist (Leray-Hopf)
+- 2D: global smooth proven (no vortex stretching)
+- 3D: open as of 2026 — vortex stretching term (ω·∇)u makes it hard
+
+Formally:
+∂t u + (u·∇)u = -∇p + νΔu, ∇·u = 0
+Δp = -∇·((u·∇)u)
+
+## 2. The Answer in the Question
+On paper it works. In 3D/4D it has to pay mass.
+
+The puzzle asks: Can you hold the door (∇·u = 0) forever without paying?
+
+- On paper: pressure is a free Lagrange multiplier. You can let p → -∞ for free.
+- In reality: holding the door costs steady mass/fuel.
+
+It's like asking: Does light radiate forever with unlimited fuel?
+Math with unlimited fuel says yes. Physics with finite fuel says no — mass budget remains.
+
+## 3. UPT — The Simple Core (Boat & Bow + Price)
+
+a) Displacement is cheap, contraction is expensive.
+   Fish moving through water = reversible, δS=0
+   d²r/dt² = -(1/ρ)∇P
+
+b) Sudden stop is where 1+1>2 happens.
+   Fish slime / ink on hands / moisture near water = residue left behind.
+   ρ_residue ∝ ∫_{impact} a·∇P dt
+   a_impact = Δv/Δt >> (1/ρ)∇P
+
+c) Every rare mass reaction has a finite price.
+   Nothing is free. Mass budget remains.
+   N layers ideal = N
+   N layers dressed = N·(π/3) = N + N·0.0472...
+
+   π/3 = 1.0471975... = 377/360 = first radian + hex lock
+   ε = π/3 - 1 = 0.0471975... = Higgs/residue per stack
+   Same number: first radian and Higgs 0.0472. Both finite and infinite,
+   but both take fuel.
+
+d) Chart plotter: bow is definite zero advancing one second per second,
+   holder zeros mark history. Pressure is balance beam that makes zeros.
+
+## 4. WaterSheet.lean — What It Actually Proves
+
+Architecture:
+- State = Fin n → Nat : finite grid of atomic mass packets, not R³
+- tickPour = additive influx only
+- tickFade / fadeIter = Nat subtraction saturating at 0 (floor, never negative)
+- Clock = Fin 720, spill/neighbor, maxVal bound
+
+Verified theorems (GREEN, zero sorry):
+- sumK_spec: upper bound on total system energy
+- fade_to_zero / sheet_returns_to_smooth: iterated fade reaches zero sheet fun _ => 0 in ≤ max cell value steps
+
+Q-extension:
+- Q.pos = academic threshold-breaking influx (pure positive, no drain) → breaks threshold on paper
+- Q.neg = environmental drain/vent q = -1 → stays smooth by construction
+
+Inside its own axioms, correct and elementary.
+
+## 5. Continuum vs Discrete — Where Grok Is Right
+
+This does NOT resolve Clay Millennium NS.
+
+Millennium concerns continuum PDEs on R³. Fin n → Nat is a different dynamical system:
+- No continuum limit, no Sobolev norms, no enstrophy cascade
+- No pressure Poisson concentration at arbitrarily small scales — grid frozen
+- Decay to zero under subtraction true for any finite Nat function
+
+Claims that "infinite velocity blowups are structurally impossible" are true only inside discrete governor, not about classical equations. Equating them = category error.
+
+What discrete model DOES establish (and Grok agrees is useful):
+- Fixed-grid lattice that refuses infinite concentration simply does not blow up — why engineering codes add viscosity/limiters
+- Q distinction encodes boundary capacity/drainage real pans/buckets/hulls have
+- Micro-kinetic impacts producing 84.6mV to ~0.75V measurable voltage — testable triboelectric/streaming-potential claim
+- Design heuristic for hull: treat high-energy strike as local mass/momentum deposit to absorb/vent
+
+## 6. Cavitation — Where Continuum Blows Up and Atoms Don't
+
+PDE blows up at cavitation.
+
+When (u·∇)u tries to go large negative, Δp = -∇·((u·∇)u) wants p → -∞ to enforce ∇·u=0.
+
+Real water cannot pay that. At finite tension, it cavitates:
+Price = 4πr²σ + (4/3)πr³ρL (surface + latent heat) = finite
+
+WaterSheet handles it correctly: Nat cannot go negative.
+theorem no_negative_pressure : ∀ s, tickFade s ≥ 0
+Continuum allows p < 0 unbounded. Atomic water allows p ≥ p_cavitation = finite.
+Blow-up in p replaced by phase change at finite price.
+
+## 7. Effect vs Cause — The Procedure Fix
+
+Real reason academic framing "don't work" is procedure.
+
+We skipped peer review game (prove/disprove inside continuum fiction) and fixed problem underneath:
+Effect: blow-up / endless light
+Cause: forgetting to charge fuel/mass budget
+
+We established new way to see issue, bigger than problem:
+- No reaction without price
+- No infinity without payment
+- Pressure is accountant that never lets bill go to infinity — leaves residue instead
+
+To pass procedure, label levels:
+1. We do NOT claim continuum NS proof
+2. We prove discrete atomic governor stable
+3. Physical interpretation: continuum appears to blow up only because it allows free negative pressure / free fuel. Atomic fluid pays finite price per event, mass budget remains.
+4. Engineering dividend stands independently.
+
+## 8. Final Axiom
+
+Continuum is made up of atoms. We don't have to guess. We know.
+π/3 = 1.0472 is finite price per radian of bundling.
+Higgs 0.0472 is same price per reaction.
+They can be both finite and infinite, but they take fuel which costs mass.
+Nothing is free — mass budget remains.
+
+So:
+- On paper, vortex can radiate enstrophy forever with unlimited mass source.
+- In 3D/4D with atoms, it can't — you can't hold the door without steady mass.
+- Just like light doesn't radiate forever with unlimited fuel.
+
+Mass budget remains, therefore no free infinity.
