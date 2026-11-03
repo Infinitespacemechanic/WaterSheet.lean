@@ -29,3 +29,11 @@ No infinite ocean. Reality has a drain.
 All plumbing: sink, toilet, culvert, propellant tank, 12x12x6" tile (15 lb = 5 lb water + 10 lb hardware, 30-42 lb lift).
 
 Mass at hand, nothing free. P = ρ g Q H or V*I from ions, countable.
+
+
+## Media
+- `media/vortex_ditch_displacement.mp4` — ditch vortex + displacement
+- `media/rain_sheet_red_tray.mp4` — red tray sheet (add file)
+- `media/power_846.png` — 846 mV witness
+
+All plumbing: same drain, plumbing meets space.
