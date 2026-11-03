@@ -29,4 +29,3 @@ No infinite ocean. Reality has a drain.
 All plumbing: sink, toilet, culvert, propellant tank, 12x12x6" tile (15 lb = 5 lb water + 10 lb hardware, 30-42 lb lift).
 
 Mass at hand, nothing free. P = ρ g Q H or V*I from ions, countable.
-
