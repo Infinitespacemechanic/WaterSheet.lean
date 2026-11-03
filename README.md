@@ -51,3 +51,7 @@ Chemical power $P = V \times I$ from ions, countable like hydraulic $P = \rho g 
 - `spill_bounded_two`
 
 No infinite ocean. Reality has a drain and a slope that gives length and power.
+
+## Stray math locked
+
+See `WaterSheetStray.lean` — Pi/3 throttling constant $\pi/3 \approx 1.04719$, residual $0.04719$, clock $Fin 12$ 1-3-6-9-12 closed by twelfth, floor $\ge 1$ holds at 1, bubble detector $Fin 5$ counting me/earth/sun/galaxy/universe $\ge 1$ each, first ones confirmed by two probes, mass at hand $M = N + H_m$, slope gives length 90 ft = head $H$, $P = \rho g Q H$, $Q$ capped by 8" pipe, paper abstraction not real drainage claim, theory shared construction reserved.
